@@ -75,12 +75,10 @@ class LinkedList <T> {
             print("Linked List is empty.")
         } else {
             var currentNode = head
-            var count = lenght
             repeat {
             print("\(currentNode!.data),")
             currentNode = currentNode?.next
-            count = count-1
-            }while (count>0)
+            }while (currentNode?.next != nil )
         }
     }
     
@@ -201,7 +199,7 @@ listEmployee.addNode(value: Employee(firstName: "Sachin", lastName: "Shah", midd
 //listEmployee.printAll()
 
 listEmployee.modifyNode(data: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 35), position: 2)
-//listEmployee.printAll()
+listEmployee.printAll()
 
 listEmployee.read(position: 3)
 
