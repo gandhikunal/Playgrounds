@@ -3,9 +3,8 @@
 //addition, read, modify at head is O(1), at tail is O(1), at a random position O(n)
 // deletion at head is O(1) else is O(n)
 //traversal is O(n)
-
 import Foundation
-class Node <T> {
+class Node <T: Equatable> {
     var data :T
     var next: Node?
     init(data: T, next: Node?=nil) {
@@ -14,7 +13,7 @@ class Node <T> {
     }
 }
 
-class LinkedList <T> {
+class LinkedList <T: Equatable> {
     
     var head: Node<T>?
     var tail: Node<T>?
@@ -26,15 +25,43 @@ class LinkedList <T> {
     }
     var lenght: Int = 0
     
+    func search(data: T) -> (Bool,Int?) {
+        var start = head
+        var count = 0
+        while start!.next != nil {
+            count = +1
+            if start!.data == data {
+                return(true,count+1)
+            }
+            start = start!.next
+        }
+        if(start!.data == data) {
+            return(true,lenght)
+        }
+        return (false,nil)
+    }
+    
+    func reverseListRecursion(node: Node<T>) {
+        let temp = node.next
+        if node.next == nil {
+            head = node
+            return
+        }
+        node.next = nil
+        reverseListRecursion(node: temp!)
+        temp?.next = node
+
+    }
+    
     private func traverseToNode(count: inout Int) -> (Node<T>?,Node<T>?) {
         var currentNode = head
         var previousNode: Node<T>? = nil
         while(count>1){
-        count = count-1
-        previousNode = currentNode
-        currentNode = currentNode!.next
+            count = count-1
+            previousNode = currentNode
+            currentNode = currentNode!.next
         }
-         return (previousNode,currentNode)
+        return (previousNode,currentNode)
     }
     
     func modifyNode(data: T, position: Int) {
@@ -45,7 +72,7 @@ class LinkedList <T> {
             var count = position
             var currentNode: Node<T>?
             if(count==lenght){
-                currentNode = tail!.data as? Node<T>
+                currentNode = tail
             } else {
                 (_, currentNode) = traverseToNode(count: &count)
             }
@@ -75,33 +102,36 @@ class LinkedList <T> {
             print("Linked List is empty.")
         } else {
             var currentNode = head
+            var count = lenght
             repeat {
-            print("\(currentNode!.data),")
-            currentNode = currentNode?.next
-            }while (currentNode?.next != nil )
+                print("\(currentNode!.data),")
+                currentNode = currentNode?.next
+                count = count-1
+            }while (count>0)
         }
     }
     
     
     func read(position: Int) {
+        
         if isEmpty {
             print("Linked List is empty.")
         } else {
             var count = position
             var currentNode: Node<T>?
             if(count==lenght){
-                currentNode = tail!.data as? Node<T>
+                currentNode = tail!
             } else {
-                 (_, currentNode) = traverseToNode(count: &count)
+                (_, currentNode) = traverseToNode(count: &count)
             }
-                print("Value at node \(position): \(currentNode!.data)")
+            print("Value at node \(position): \(currentNode!.data)")
         }
         
     }
     
     func addNode(value: T, position:Int?=nil, addAtHead:Bool=true) {
         let newNode = Node(data: value)
-         lenght = lenght+1
+        lenght = lenght+1
         if isEmpty {
             head = newNode
             tail = newNode
@@ -147,9 +177,18 @@ struct Employee {
     var age: Int
 }
 
+extension Employee: Equatable {
+    static func == (lhs: Employee, rhs:Employee) -> Bool {
+        return
+            lhs.firstName == rhs.firstName &&
+            lhs.middleName == rhs.middleName &&
+            lhs.lastName == rhs.lastName &&
+            lhs.age == rhs.age
+    }
+}
 extension Employee: CustomStringConvertible {
     var description: String {
-            return "\(firstName) \(middleName) \(lastName), Age: \(age)"
+        return "\(firstName) \(middleName) \(lastName), Age: \(age)"
     }
 }
 
@@ -177,7 +216,6 @@ let list = LinkedList<String>()
 ////list.printAll()
 //
 //list.read(position: 3)
-
 let listEmployee = LinkedList<Employee>()
 //Adding at the head
 listEmployee.addNode(value: Employee(firstName: "Kunal", lastName: "Gandhi", middleName: "Narendra", age: 34))
@@ -186,21 +224,23 @@ listEmployee.addNode(value: Employee(firstName: "Saral", lastName: "Shah", middl
 listEmployee.addNode(value: Employee(firstName: "Rakesh", lastName: "Shetty", middleName: "Gopal", age: 34))
 
 //listEmployee.printAll()
-
 listEmployee.removeNode(position: 1)
 //listEmployee.printAll()
 listEmployee.removeNode(position: 2)
 //listEmployee.printAll()
-
 //Adding at tail
 listEmployee.addNode(value: Employee(firstName: "Rakesh", lastName: "Shetty", middleName: "Gopal", age: 34), addAtHead: false)
 //listEmployee.printAll()
 listEmployee.addNode(value: Employee(firstName: "Sachin", lastName: "Shah", middleName: "Kunal", age: 34), position: 2)
 //listEmployee.printAll()
-
 listEmployee.modifyNode(data: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 35), position: 2)
 listEmployee.printAll()
-
-listEmployee.read(position: 3)
-
-
+listEmployee.read(position: 4)
+//let (sucess,value) = listEmployee.search(data: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 35))
+//if sucess {
+//    print(value!)
+//} else {
+//    print("Failure")
+//}
+listEmployee.reverseListRecursion(node: listEmployee.head!)
+listEmployee.printAll()
