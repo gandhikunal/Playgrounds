@@ -3,168 +3,166 @@
 //addition, read, modify at head is O(1), at tail is O(1), at a random position O(n)
 // deletion at head is O(1) else is O(n)
 //traversal is O(n)
+
 import Foundation
-class Node <T: Equatable> {
-    var data :T
+import XCTest
+
+class Node<T: Equatable> {
+    var data: T
     var next: Node?
-    init(data: T, next: Node?=nil) {
+    init(data: T, next: Node? = nil) {
         self.data = data
         self.next = next
     }
 }
 
-class LinkedList <T: Equatable> {
+class LinkedList<T: Equatable> {
     
     var head: Node<T>?
-    var tail: Node<T>?
-    var isEmpty: Bool {
-        get {
-            if head == nil { return true }
-            else { return false }
-        }
-    }
-    var lenght: Int = 0
     
-    func search(data: T) -> (Bool,Int?) {
-        var start = head
-        var count = 0
-        while start!.next != nil {
-            count = +1
-            if start!.data == data {
-                return(true,count+1)
-            }
-            start = start!.next
-        }
-        if(start!.data == data) {
-            return(true,lenght)
-        }
-        return (false,nil)
-    }
+    var isEmpty: Bool { return head == nil }
     
-    func reverseListRecursion(node: Node<T>) {
-        let temp = node.next
-        if node.next == nil {
+    var length = 0
+    
+//    node needs to be passed in as an argument inorder to be able to reverse recurseively
+    func reverseListRecursion(node: Node<T>) -> Bool {
+        guard !isEmpty else { return false }
+//      ensures exit condition for the recursion
+        guard let temp = node.next else {
             head = node
-            return
+            return true
         }
         node.next = nil
-        reverseListRecursion(node: temp!)
-        temp?.next = node
-
+        reverseListRecursion(node: temp)
+        temp.next = node
+        return true
     }
     
-    private func traverseToNode(count: inout Int) -> (Node<T>?,Node<T>?) {
-        var currentNode = head
+    
+    func traverse(count: Int? = nil, closure: (Node<T>, Node<T>?) -> Bool) -> Node<T>? {
+        var node = head
+//        ensure you want to traverse the whole loop
+        guard var count = count else {
+            while let start = node {
+                node = start.next
+                if closure(start, nil) { return start }
+                
+            }
+            assert(node == nil)
+            return nil
+        }
         var previousNode: Node<T>? = nil
-        while(count>1){
-            count = count-1
-            previousNode = currentNode
-            currentNode = currentNode!.next
+        var currentNode = node!
+        while(count>1) {
+            count -= 1
+            previousNode = node
+            currentNode = currentNode.next!
         }
-        return (previousNode,currentNode)
+        closure(currentNode,previousNode)
+        return nil
     }
     
-    func modifyNode(data: T, position: Int) {
-        if position > lenght {
-            print("Error: Trying to modify elemt out of range")
-        } else {
-            
-            var count = position
-            var currentNode: Node<T>?
-            if(count==lenght){
-                currentNode = tail
-            } else {
-                (_, currentNode) = traverseToNode(count: &count)
-            }
-            currentNode!.data = data
-        }
-    }
     
-    func removeNode(position: Int) {
-        if isEmpty {
-            print("Linked List is empty.")
-        } else if position > lenght {
-            print("Position out of range.")
-        } else {
-            var count = position
-            let (previousNode, currentNode) = traverseToNode(count: &count)
-            if previousNode == nil {
-                head = currentNode?.next
-            } else {
-                previousNode?.next = currentNode?.next
-            }
-            lenght = lenght-1
+    func search(data: T) -> Node<T>? {
+        guard !isEmpty else { return nil}
+        let node = traverse { (start,_) in
+            if (start.data == data) {
+                print("Value found")
+                return true
+            } else { return false }
         }
+        
+        if let returnValue = node { return returnValue }
+        else { return nil }
     }
     
     func printAll() {
-        if isEmpty {
-            print("Linked List is empty.")
-        } else {
-            var currentNode = head
-            var count = lenght
-            repeat {
-                print("\(currentNode!.data),")
-                currentNode = currentNode?.next
-                count = count-1
-            }while (count>0)
+        guard !isEmpty else { print("Linked List is Empty"); return }
+        traverse { (start , _) in
+            print("\(start.data),")
+            return false
         }
+        
     }
+
+    func modifyNode(data: T, position: Int) -> Bool {
+        guard !isEmpty else { print("Linked List is Empty"); return false }
+        guard position < length else {print("Linked List is Empty"); return false}
+        traverse(count: position) { (nodeToModify, _) -> Bool in
+            nodeToModify.data = data
+            return true
+        }
+        return true
+    }
+    
+    func removeNode(position: Int) -> Bool {
+        guard !isEmpty else { print("Linked List is Empty"); return false }
+        guard position < length else {print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
+        length = length-1
+        traverse(count: position) { (currentNode, previousNode) -> Bool in
+//      ensures node to be modified is not the first node otherwise modify head pointer and exit
+            guard let nodeToModify = previousNode else {
+                head = currentNode.next
+                return true
+            }
+            nodeToModify.next = currentNode.next
+            return true
+        }
+        return true
+    }
+    
+    
     
     
     func read(position: Int) {
-        
-        if isEmpty {
-            print("Linked List is empty.")
-        } else {
-            var count = position
-            var currentNode: Node<T>?
-            if(count==lenght){
-                currentNode = tail!
-            } else {
-                (_, currentNode) = traverseToNode(count: &count)
-            }
-            print("Value at node \(position): \(currentNode!.data)")
+        guard !isEmpty else { print("Linked List is Empty"); return }
+        guard position < length else {print("Error: Cannot add at the mentioned position linked list shorter than requested."); return}
+        traverse(count: position) { (currentNode, _) -> Bool in
+            print("Value at node \(position): \(currentNode.data)")
+            return true
         }
+        
         
     }
     
-    func addNode(value: T, position:Int?=nil, addAtHead:Bool=true) {
+    func addNode(value: T, position:Int?=nil, addAtHead:Bool=true) -> Bool {
         let newNode = Node(data: value)
-        lenght = lenght+1
-        if isEmpty {
-            head = newNode
-            tail = newNode
-            return
-        } else {
-            if position == nil {
-                if addAtHead {
-                    newNode.next = head
-                    head = newNode
-                }else {
-                    tail?.next = newNode
-                    tail = newNode
+        length = length+1
+        
+        guard !isEmpty else { head = newNode; return true }
+        
+//      ensure requested addition not at a certain position rather at head or tail
+        guard let position = position else {
+            if addAtHead {
+                newNode.next = head
+                head = newNode
+                return true
+            }else {
+                traverse { (start, _) -> Bool in
+                    if start.next == nil {
+                        start.next = newNode
+                        return false
+                    }
+                    return false
                 }
-                
-            } else {
-                if (position! > lenght) {
-                    print("Error: Cannot add at the mentioned position linked list shorter than requested.")
-                    return
-                }
-                var count = position!
-                let (previousNode, currentNode) = traverseToNode(count: &count)
-                newNode.next = currentNode
-                if previousNode == nil {
-                    head = newNode
-                } else {
-                    previousNode!.next = newNode
-                }
-                
-                return
+                return true
             }
         }
         
+//      ensure that the position at which insertion is requeted is not outside bounds
+        guard position < length else {
+            print("Error: Cannot add at the mentioned position linked list shorter than requested.")
+            return false
+        }
+        traverse(count: position) { (currentNode, previousNode) -> Bool in
+            newNode.next = currentNode
+            guard let nodeToModify = previousNode else {  head = newNode; return true }
+            nodeToModify.next = newNode
+            return true
+        }
+        return true
     }
+    
     
 }
 
@@ -192,55 +190,62 @@ extension Employee: CustomStringConvertible {
     }
 }
 
+class LinkedListTests: XCTest {
+    
+    
+}
 let list = LinkedList<String>()
 //// Adding at the head
-//list.addNode(value: "First Node")
-//list.addNode(value: "Second Node")
-//list.addNode(value: "Third Node")
-//list.addNode(value: "Fourth Node")
-////list.printAll()
+//list.printAll()
+list.addNode(value: "First Node")
+list.addNode(value: "Second Node")
+list.addNode(value: "Third Node")
+list.addNode(value: "Fourth Node")
+//list.printAll()
 //
-//list.removeNode(position: 1)
-////list.printAll()
+list.removeNode(position: 1)
+//list.printAll()
 //
-//list.removeNode(position: 2)
-////list.printAll()
+
+list.removeNode(position: 2)
+//list.printAll()
 //
 //// Adding at the tail
-//list.addNode(value: "Fifth Node", addAtHead: false)
-//list.addNode(value: "Sixth Node", addAtHead: false)
-//list.addNode(value: "Wild Card", position: 2)
-////list.printAll()
+list.addNode(value: "Fifth Node", addAtHead: false)
+list.addNode(value: "Sixth Node", addAtHead: false)
+list.addNode(value: "Wild Card", position: 2)
+//list.printAll()
 //
-//list.modifyNode(data: "Second Node", position: 2)
-////list.printAll()
+list.modifyNode(data: "Second Node", position: 2)
+list.printAll()
 //
-//list.read(position: 3)
-let listEmployee = LinkedList<Employee>()
+list.read(position: 2)
+let result = list.search(data: "Sixth Node")
+//let listEmployee = LinkedList<Employee>()
 //Adding at the head
-listEmployee.addNode(value: Employee(firstName: "Kunal", lastName: "Gandhi", middleName: "Narendra", age: 34))
-listEmployee.addNode(value: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 34))
-listEmployee.addNode(value: Employee(firstName: "Saral", lastName: "Shah", middleName: "Dinesh", age: 34))
-listEmployee.addNode(value: Employee(firstName: "Rakesh", lastName: "Shetty", middleName: "Gopal", age: 34))
+//listEmployee.addNode(value: Employee(firstName: "Kunal", lastName: "Gandhi", middleName: "Narendra", age: 34))
+//listEmployee.addNode(value: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 34))
+//listEmployee.addNode(value: Employee(firstName: "Saral", lastName: "Shah", middleName: "Dinesh", age: 34))
+//listEmployee.addNode(value: Employee(firstName: "Rakesh", lastName: "Shetty", middleName: "Gopal", age: 34))
 
+////listEmployee.printAll()
+//listEmployee.removeNode(position: 1)
+////listEmployee.printAll()
+//listEmployee.removeNode(position: 2)
+////listEmployee.printAll()
+////Adding at tail
+//listEmployee.addNode(value: Employee(firstName: "Rakesh", lastName: "Shetty", middleName: "Gopal", age: 34), addAtHead: false)
+////listEmployee.printAll()
+//listEmployee.addNode(value: Employee(firstName: "Sachin", lastName: "Shah", middleName: "Kunal", age: 34), position: 2)
+////listEmployee.printAll()
+//listEmployee.modifyNode(data: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 35), position: 2)
 //listEmployee.printAll()
-listEmployee.removeNode(position: 1)
-//listEmployee.printAll()
-listEmployee.removeNode(position: 2)
-//listEmployee.printAll()
-//Adding at tail
-listEmployee.addNode(value: Employee(firstName: "Rakesh", lastName: "Shetty", middleName: "Gopal", age: 34), addAtHead: false)
-//listEmployee.printAll()
-listEmployee.addNode(value: Employee(firstName: "Sachin", lastName: "Shah", middleName: "Kunal", age: 34), position: 2)
-//listEmployee.printAll()
-listEmployee.modifyNode(data: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 35), position: 2)
-listEmployee.printAll()
-listEmployee.read(position: 4)
+//listEmployee.read(position: 4)
 //let (sucess,value) = listEmployee.search(data: Employee(firstName: "Pritesh", lastName: "Shah", middleName: "Jayesh", age: 35))
 //if sucess {
 //    print(value!)
 //} else {
 //    print("Failure")
 //}
-listEmployee.reverseListRecursion(node: listEmployee.head!)
-listEmployee.printAll()
+//listEmployee.reverseListRecursion(node: listEmployee.head!)
+//listEmployee.printAll()
