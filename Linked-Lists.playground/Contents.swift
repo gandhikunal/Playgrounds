@@ -39,7 +39,7 @@ class LinkedList<T: Equatable> {
     }
     
     
-    func traverse(count: Int? = nil, closure: (Node<T>, Node<T>?) -> Bool) -> Node<T>? {
+    private func traverse(count: Int? = nil, closure: (Node<T>, Node<T>?) -> Bool) -> Node<T>? {
         var node = head
 //        ensure you want to traverse the whole loop
         guard var count = count else {
@@ -55,7 +55,7 @@ class LinkedList<T: Equatable> {
         var currentNode = node!
         while(count>1) {
             count -= 1
-            previousNode = node
+            previousNode = currentNode
             currentNode = currentNode.next!
         }
         closure(currentNode,previousNode)
@@ -64,16 +64,16 @@ class LinkedList<T: Equatable> {
     
     
     func search(data: T) -> Node<T>? {
-        guard !isEmpty else { return nil}
+        guard !isEmpty else { print("Linked List is Empty"); return nil}
         let node = traverse { (start,_) in
             if (start.data == data) {
                 print("Value found")
                 return true
-            } else { return false }
+            } else {  return false }
         }
         
         if let returnValue = node { return returnValue }
-        else { return nil }
+        else { print("Value Not Found."); return nil }
     }
     
     func printAll() {
@@ -87,7 +87,7 @@ class LinkedList<T: Equatable> {
 
     func modifyNode(data: T, position: Int) -> Bool {
         guard !isEmpty else { print("Linked List is Empty"); return false }
-        guard position < length else {print("Linked List is Empty"); return false}
+        guard position <= length else { print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
         traverse(count: position) { (nodeToModify, _) -> Bool in
             nodeToModify.data = data
             return true
@@ -97,7 +97,7 @@ class LinkedList<T: Equatable> {
     
     func removeNode(position: Int) -> Bool {
         guard !isEmpty else { print("Linked List is Empty"); return false }
-        guard position < length else {print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
+        guard position <= length else { print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
         length = length-1
         traverse(count: position) { (currentNode, previousNode) -> Bool in
 //      ensures node to be modified is not the first node otherwise modify head pointer and exit
@@ -107,7 +107,12 @@ class LinkedList<T: Equatable> {
             }
             nodeToModify.next = currentNode.next
             return true
+                
+            
+
+            
         }
+        
         return true
     }
     
@@ -116,7 +121,7 @@ class LinkedList<T: Equatable> {
     
     func read(position: Int) {
         guard !isEmpty else { print("Linked List is Empty"); return }
-        guard position < length else {print("Error: Cannot add at the mentioned position linked list shorter than requested."); return}
+        guard position <= length else { print("Error: Cannot access at the mentioned position linked list shorter than requested."); return}
         traverse(count: position) { (currentNode, _) -> Bool in
             print("Value at node \(position): \(currentNode.data)")
             return true
@@ -195,32 +200,40 @@ class LinkedListTests: XCTest {
     
 }
 let list = LinkedList<String>()
+list.printAll()
+list.removeNode(position: 1)
+list.search(data: "Kunal")
+list.read(position: 10)
+list.modifyNode(data: "New Node", position: 10)
+
 //// Adding at the head
-//list.printAll()
+
 list.addNode(value: "First Node")
 list.addNode(value: "Second Node")
 list.addNode(value: "Third Node")
 list.addNode(value: "Fourth Node")
-//list.printAll()
-//
-list.removeNode(position: 1)
-//list.printAll()
-//
-
-list.removeNode(position: 2)
-//list.printAll()
-//
-//// Adding at the tail
 list.addNode(value: "Fifth Node", addAtHead: false)
 list.addNode(value: "Sixth Node", addAtHead: false)
 list.addNode(value: "Wild Card", position: 2)
 //list.printAll()
 //
-list.modifyNode(data: "Second Node", position: 2)
+list.removeNode(position: 1)
+list.removeNode(position: 4)
+list.removeNode(position: 4)
 list.printAll()
-//
-list.read(position: 2)
-let result = list.search(data: "Sixth Node")
+
+
+list.modifyNode(data: "Second Node", position: 1)
+list.modifyNode(data: "Second Node", position: 5)
+list.modifyNode(data: "Second Node", position: 6)
+list.printAll()
+list.read(position: 1)
+list.read(position: 3)
+list.read(position: 7)
+let result = list.search(data: "Fourth Node")
+let result2 = list.search(data: "Third Node")
+let result1 = list.search(data: "Sixth Node")
+
 //let listEmployee = LinkedList<Employee>()
 //Adding at the head
 //listEmployee.addNode(value: Employee(firstName: "Kunal", lastName: "Gandhi", middleName: "Narendra", age: 34))
