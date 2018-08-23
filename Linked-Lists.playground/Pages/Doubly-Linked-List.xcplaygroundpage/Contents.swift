@@ -10,7 +10,8 @@ import XCTest
 class Node<T: Equatable> {
     var data: T
     var next: Node?
-    init(data: T, next: Node? = nil) {
+    var previous: Node?
+    init(data: T, next: Node? = nil, previous: Node? = nil) {
         self.data = data
         self.next = next
     }
@@ -24,33 +25,36 @@ class LinkedList<T: Equatable> {
     
     var length = 0
     
-//    node needs to be passed in as an argument inorder to be able to reverse recurseively
+    //    node needs to be passed in as an argument inorder to be able to reverse recurseively
     private func reverseListRecursion(node: Node<T>) {
         //      ensures exit condition for the recursion
-                guard let temp = node.next else {
-                    head = node
-                    return
-                }
-                node.next = nil
-                reverseListRecursion(node: temp)
-                temp.next = node
-                return
-            }
-
-//  No need to check for empty condition as the function is private only called internally before checking the necessary conditions
+        guard let temp = node.next else {
+            head = node
+            node.next = node.previous
+            node.previous = nil
+            return
+        }
+        node.next = nil
+        reverseListRecursion(node: temp)
+        node.previous = temp
+        temp.next = node
+        return
+    }
+    
+    //  No need to check for empty condition as the function is private only called internally before checking the necessary conditions
     private func traverse(count: Int? = nil, closure: (Node<T>, Node<T>?) -> Bool) -> Node<T>? {
+        assert(head != nil)
         var node = head
-//      ensure you want to traverse the whole linked list
+        //      ensure you want to traverse the whole linked list
         guard var count = count else {
             while let start = node {
                 node = start.next
                 if closure(start, nil) { return start }
-                
             }
             assert(node == nil)
             return nil
         }
-//      else travere to the point of desire and return the current and the previous node
+        //      else travere to the point of desire and return the current and the previous node
         var previousNode: Node<T>? = nil
         var currentNode = node!
         while(count>1) {
@@ -62,7 +66,7 @@ class LinkedList<T: Equatable> {
         return nil
     }
     
-//  Wrrapper function to enusre that the list reversal starts from the head node
+    //  Wrrapper function to enusre that the list reversal starts from the head node
     func reverseLinkedList() -> Bool {
         guard !isEmpty else { print("Linked List is Empty"); return false }
         assert(head != nil)
@@ -92,7 +96,7 @@ class LinkedList<T: Equatable> {
         }
         return true
     }
-
+    
     func modifyNode(data: T, position: Int) -> Bool {
         guard !isEmpty else { print("Linked List is Empty"); return false }
         guard position <= length else { print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
@@ -106,21 +110,21 @@ class LinkedList<T: Equatable> {
     func removeNode(position: Int) -> Bool {
         guard !isEmpty else { print("Linked List is Empty"); return false }
         guard position <= length else { print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
-        length = length-1
+        
         traverse(count: position) { (currentNode, previousNode) -> Bool in
-//      ensures node to be modified is not the first node otherwise modify head pointer and exit
+            //      ensures node to be modified is not the first node otherwise modify head pointer and exit
             guard let nodeToModify = previousNode else {
                 head = currentNode.next
+                currentNode.next!.previous = nil
                 return true
             }
             nodeToModify.next = currentNode.next
+            currentNode.previous = nodeToModify
             return true
         }
+        length = length-1
         return true
     }
-    
-    
-    
     
     func read(position: Int) -> Bool {
         guard !isEmpty else { print("Linked List is Empty"); return false}
@@ -138,15 +142,17 @@ class LinkedList<T: Equatable> {
         
         guard !isEmpty else { head = newNode; return true }
         
-//      ensure requested addition not at a certain position rather at head or tail
+        //      ensure requested addition not at a certain position rather at head or tail
         guard let position = position else {
             if addAtHead {
+                head!.previous = newNode
                 newNode.next = head
                 head = newNode
                 return true
             }else {
                 traverse { (start, _) -> Bool in
                     if start.next == nil {
+                        newNode.previous = start
                         start.next = newNode
                         return false
                     }
@@ -156,15 +162,20 @@ class LinkedList<T: Equatable> {
             }
         }
         
-//      ensure that the position at which insertion is requeted is not outside bounds
+        //      ensure that the position at which insertion is requeted is not outside bounds
         guard position < length else {
             print("Error: Cannot add at the mentioned position linked list shorter than requested.")
             return false
         }
         traverse(count: position) { (currentNode, previousNode) -> Bool in
             newNode.next = currentNode
-            guard let nodeToModify = previousNode else {  head = newNode; return true }
+            currentNode.previous = newNode
+            guard let nodeToModify = previousNode else {
+                head = newNode;
+                return true
+            }
             nodeToModify.next = newNode
+            newNode.previous = nodeToModify
             return true
         }
         return true
@@ -209,29 +220,45 @@ class LinkedListTests: XCTestCase {
         XCTAssert(list.length != 0)
         XCTAssert(list.head!.data == "Second Node")
         XCTAssert(list.head!.next == nil)
+        XCTAssert(list.head!.previous == nil)
+        
         list.addNode(value: "First Node")
-        XCTAssert(list.head != nil)
-        XCTAssert(list.isEmpty != true)
         XCTAssert(list.length == 2)
         XCTAssert(list.head!.data == "First Node")
         XCTAssert(list.head!.next != nil)
+        XCTAssert(list.head!.previous == nil)
         XCTAssert(list.head!.next!.data == "Second Node")
         XCTAssert(list.head!.next!.next == nil)
+        XCTAssert(list.head!.next!.previous === list.head)
+        
         list.addNode(value: "Fourth Node", addAtHead: false)
-        XCTAssert(list.head != nil)
-        XCTAssert(list.isEmpty != true)
         XCTAssert(list.length == 3)
         var node = returnLastNode()
         XCTAssertEqual(list.head!.next!.next!.data,node.data)
         XCTAssert(node.next == nil)
-        list.addNode(value: "Thrid Node", position: 3)
-        let addedNodePosition = list.head!.next!.next!
-        XCTAssert(list.head != nil)
-        XCTAssert(list.isEmpty != true)
+        XCTAssert(node.previous != nil)
+        XCTAssert(node.previous!.data == "Second Node")
+        
+        list.addNode(value: "Third Node", position: 3)
+        var addedNodePosition = list.head!.next!.next!
         XCTAssert(list.length == 4)
-        XCTAssert(addedNodePosition.data == "Thrid Node")
+        XCTAssert(addedNodePosition.data == "Third Node")
+        XCTAssert(addedNodePosition.previous!.data == "Second Node")
         node = returnLastNode()
         XCTAssertEqual(addedNodePosition.next!.data, node.data)
+        
+        list.addNode(value: "Fifth Node", position: 4)
+        addedNodePosition = list.head!.next!.next!.next!
+        XCTAssert(list.length == 5)
+        XCTAssert(addedNodePosition.data == "Fifth Node")
+        XCTAssert(addedNodePosition.previous != nil)
+        XCTAssert(addedNodePosition.previous!.data == "Third Node")
+        node = returnLastNode()
+        XCTAssertEqual(addedNodePosition.next!.data, node.data)
+        XCTAssert(node.next == nil)
+        XCTAssert(node.previous != nil)
+        XCTAssert(node.previous!.data == "Fifth Node")
+        
     }
     func createTestList() {
         list.addNode(value: "First Node")
@@ -239,7 +266,7 @@ class LinkedListTests: XCTestCase {
         list.addNode(value: "Third Node", addAtHead: false)
         list.addNode(value: "Fourth Node", addAtHead: false)
     }
-
+    
     func testReverseLinkList() {
         createTestList()
         list.reverseLinkedList()
@@ -247,20 +274,32 @@ class LinkedListTests: XCTestCase {
         XCTAssert(list.isEmpty != true)
         XCTAssert(list.length == 4)
         XCTAssert(list.head!.data == "Fourth Node")
+        XCTAssert(list.head!.next != nil)
+        XCTAssert(list.head!.previous == nil)
+
         let node = returnLastNode()
         XCTAssert(node.data == "First Node")
         XCTAssert(node.next == nil)
+        XCTAssert(node.previous != nil)
+        XCTAssert(node.previous!.data == "Second Node")
+
         let secondNode = list.head!.next
         XCTAssert(secondNode != nil)
+        XCTAssert(secondNode!.next != nil)
+        XCTAssert(secondNode!.previous != nil)
         XCTAssert(secondNode!.data == "Third Node")
-        let thridNode = secondNode!.next
-        XCTAssert(thridNode != nil)
-        XCTAssert(thridNode!.data == "Second Node")
-        XCTAssert(thridNode!.next! === node)
-        
+        XCTAssert(secondNode!.next!.data == "Second Node")
+        XCTAssert(secondNode!.previous!.data == "Fourth Node")
+       
+        let thirdNode = secondNode!.next
+        XCTAssert(thirdNode != nil)
+        XCTAssert(thirdNode!.previous?.data == "Third Node")
+        XCTAssert(thirdNode!.data == "Second Node")
+        XCTAssert(thirdNode!.next! === node)
+
     }
     
-    
+
     func testSearchNode() {
         createTestList()
         var searchedNode = list.search(data: "First Node")
@@ -280,7 +319,7 @@ class LinkedListTests: XCTestCase {
         XCTAssert(list.read(position: 1) == true)
         XCTAssert(list.read(position: 4) == true)
     }
-    
+
     func testModifyNode() {
         createTestList()
         list.printAll()
@@ -306,7 +345,7 @@ class LinkedListTests: XCTestCase {
         XCTAssert(lastNode.next == nil)
         XCTAssert(list.length == 2)
     }
-    
+
 }
 
 class TestObserver: NSObject, XCTestObservation {
