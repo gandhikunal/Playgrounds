@@ -4,5 +4,8 @@
         <page name='Circular-Linked-Lists'/>
         <page name='Linked-Lists'/>
         <page name='Doubly-Linked-List'/>
+        <page name='Stack'/>
+        <page name='Queues'/>
+        <page name='BST'/>
     </pages>
 </playground>

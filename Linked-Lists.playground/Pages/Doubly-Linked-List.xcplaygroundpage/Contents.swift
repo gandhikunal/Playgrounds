@@ -112,14 +112,16 @@ class LinkedList<T: Equatable> {
         guard position <= length else { print("Error: Cannot access at the mentioned position linked list shorter than requested."); return false}
         
         traverse(count: position) { (currentNode, previousNode) -> Bool in
-            //      ensures node to be modified is not the first node otherwise modify head pointer and exit
+            // ensures node to be modified is not the first node otherwise modify head pointer and exit
             guard let nodeToModify = previousNode else {
                 head = currentNode.next
                 currentNode.next!.previous = nil
                 return true
             }
             nodeToModify.next = currentNode.next
-            currentNode.previous = nodeToModify
+            // ensures node to be modified is not the last node otherwise exit as previous is asssigned to be  the last node
+            guard let newNode = currentNode.next else { return true }
+            newNode.previous = nodeToModify
             return true
         }
         length = length-1
@@ -266,7 +268,7 @@ class LinkedListTests: XCTestCase {
         list.addNode(value: "Third Node", addAtHead: false)
         list.addNode(value: "Fourth Node", addAtHead: false)
     }
-    
+
     func testReverseLinkList() {
         createTestList()
         list.reverseLinkedList()
@@ -290,7 +292,7 @@ class LinkedListTests: XCTestCase {
         XCTAssert(secondNode!.data == "Third Node")
         XCTAssert(secondNode!.next!.data == "Second Node")
         XCTAssert(secondNode!.previous!.data == "Fourth Node")
-       
+
         let thirdNode = secondNode!.next
         XCTAssert(thirdNode != nil)
         XCTAssert(thirdNode!.previous?.data == "Third Node")
@@ -298,7 +300,7 @@ class LinkedListTests: XCTestCase {
         XCTAssert(thirdNode!.next! === node)
 
     }
-    
+
 
     func testSearchNode() {
         createTestList()

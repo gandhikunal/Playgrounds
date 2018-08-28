@@ -149,7 +149,7 @@ class LinkedList<T: Equatable> {
                 traverse { (start, _) -> Bool in
                     if start.next == nil {
                         start.next = newNode
-                        return false
+                        return true
                     }
                     return false
                 }

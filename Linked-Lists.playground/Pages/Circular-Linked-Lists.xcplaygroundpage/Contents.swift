@@ -83,6 +83,7 @@ class CircularLinkedList<T: Equatable> {
         traverse(count: position) { (currentNode, previousNode) -> Bool in
             //      ensures node to be modified is not the first node otherwise modify head pointer, last element and exit
             guard let nodeToModify = previousNode else {
+//              traversing to the last node to build link pointer to new head
                 var node = head!
                 for _ in 1...length-1 {
                     node = node.next!
@@ -91,12 +92,7 @@ class CircularLinkedList<T: Equatable> {
                 node.next = head
                 return true
             }
-            if currentNode.next === head {
-                previousNode!.next = head
-            }
-            else {
-                nodeToModify.next = currentNode.next
-            }
+            nodeToModify.next = currentNode.next
             return true
         }
         length = length-1
@@ -148,7 +144,17 @@ class CircularLinkedList<T: Equatable> {
         }
         traverse(count: position) { (currentNode, previousNode) -> Bool in
             newNode.next = currentNode
-            guard let nodeToModify = previousNode else {  head = newNode; return true }
+            guard let nodeToModify = previousNode else {
+                var node = head!
+//              traversing to the last node to build link pointer to new head
+                for _ in 1...length-1 {
+                    node = node.next!
+                }
+                head = newNode;
+                node.next = head
+                return true
+
+            }
             nodeToModify.next = newNode
             return true
         }
