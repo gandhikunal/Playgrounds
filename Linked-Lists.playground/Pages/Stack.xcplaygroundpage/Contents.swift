@@ -4,8 +4,8 @@ import XCTest
 
 class Node<T: Equatable> {
     var data: T
-    var next: Node?
-    init(data: T, next: Node? = nil) {
+    var next: Node<T>?
+    init(data: T, next: Node<T>? = nil) {
         self.data = data
         self.next = next
     }
@@ -14,6 +14,8 @@ class Node<T: Equatable> {
 class Stack<T: Equatable> {
     
     var top: Node<T>?
+    
+    let kunal = String()
     
     var isEmpty: Bool { return top == nil }
     
@@ -50,6 +52,8 @@ class Stack<T: Equatable> {
         top = newNode
         return true
     }
+    
+    
 }
 
 class StackTests: XCTestCase {

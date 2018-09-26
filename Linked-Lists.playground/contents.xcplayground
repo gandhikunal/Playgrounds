@@ -7,5 +7,6 @@
         <page name='Stack'/>
         <page name='Queues'/>
         <page name='BST'/>
+        <page name='Postfix-Prefix Conversion'/>
     </pages>
 </playground>

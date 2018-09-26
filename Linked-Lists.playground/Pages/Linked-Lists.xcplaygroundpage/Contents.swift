@@ -46,7 +46,6 @@ class LinkedList<T: Equatable> {
             while let start = node {
                 node = start.next
                 if closure(start, nil) { return start }
-                
             }
             assert(node == nil)
             return nil

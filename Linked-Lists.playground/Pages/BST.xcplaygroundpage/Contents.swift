@@ -2,6 +2,57 @@
 import Foundation
 import XCTest
 
+class NodeStack<T> {
+    var data: T
+    var next: NodeStack<T>?
+    init(data: T, next: NodeStack<T>? = nil) {
+        self.data = data
+        self.next = next
+    }
+}
+
+
+class Stack<T> {
+    
+    var top: NodeStack<T>?
+    
+    var isEmpty: Bool { return top == nil }
+    
+    var length = 0
+    
+    func stackIsEmpty() -> Bool {
+        guard !isEmpty else { return true }
+        return false
+    }
+    
+    func peek() -> NodeStack<T>? {
+        guard !isEmpty else { print("Stack is Empty"); return nil }
+        if let nodeToPeek = top {
+            return nodeToPeek
+        }
+        return nil
+    }
+    
+    func pop() -> Bool {
+        guard !isEmpty else { print("Stack is Empty"); return false }
+        length -= 1
+        if let nodeRemove = top {
+            top = nodeRemove.next
+            return true
+        }
+        return false
+    }
+    
+    func push(value: T) -> Bool {
+        let newNode = NodeStack(data: value)
+        length = length+1
+        guard let topNode = top else { top = newNode; return true }
+        newNode.next = topNode
+        top = newNode
+        return true
+    }
+}
+
 class NodeQueue<T> {
     var data: T
     var next: NodeQueue<T>?
@@ -71,6 +122,278 @@ class BST<T: Comparable> {
     
     var root: Node<T>?
     
+    func morrisInorderTravesal(root: Node<T>?) -> Array<T>? {
+        guard let rootNode = root else { print("Tree is epmty."); return nil }
+        var resultArray = Array<T>()
+        var nodeOnHand: Node<T>? = rootNode
+        while (nodeOnHand != nil) {
+            if (nodeOnHand!.leftChild == nil) {
+                resultArray.append(nodeOnHand!.data)
+                nodeOnHand = nodeOnHand!.rightChild
+            } else {
+                var predecessor = nodeOnHand!.leftChild
+                while (predecessor!.rightChild !== nodeOnHand || predecessor!.rightChild != nil) {
+                    predecessor = predecessor!.rightChild
+                }
+                if (predecessor!.rightChild == nil) {
+                    predecessor!.rightChild = nodeOnHand
+                    nodeOnHand = nodeOnHand!.leftChild
+                } else {
+                    predecessor!.rightChild = nil
+                    resultArray.append(nodeOnHand!.data)
+                    nodeOnHand = nodeOnHand!.rightChild
+                }
+            }
+        }
+        return resultArray
+    }
+    
+    func largestBST (root: Node<T>?) -> (Bool, Int, Int , Int) {
+        guard  let rootNode = root else { print("Tree is empty."); return (true, 0, 0, 0) }
+        if (rootNode.leftChild == nil && rootNode.rightChild == nil) {
+            return (true, 1, rootNode.data as! Int, rootNode.data as! Int)
+        }
+        let lrgLeft = largestBST(root: rootNode.leftChild)
+        let lrgRight = largestBST(root: rootNode.rightChild)
+        
+        if (lrgLeft.0 && lrgRight.0 && (rootNode.data as! Int)<=lrgLeft.2  && (rootNode.data as! Int)>lrgRight.3) {
+            return (true, (lrgLeft.1+lrgRight.1)+1 , lrgLeft.2, lrgRight.3)
+        } else {
+            return (false, max(lrgLeft.1, lrgRight.1), 0, 0)
+        }
+    }
+    
+    func postOrderTravesalOneStack() -> Void {
+        guard let rootNode = root else { print("Tree is empty."); return }
+        let stackHolder = Stack<Node<T>>()
+        var nodeOnhand: Node<T>? = rootNode
+        while (nodeOnhand != nil || !stackHolder.isEmpty) {
+            if nodeOnhand != nil {
+                stackHolder.push(value: nodeOnhand!)
+                nodeOnhand = nodeOnhand!.leftChild
+            } else {
+                if let tempNode = stackHolder.top?.data.rightChild {
+                   nodeOnhand = tempNode
+                } else {
+                    var tempNode = stackHolder.top!.data
+                    print(tempNode.data)
+                    stackHolder.pop()
+                    while (!stackHolder.isEmpty && tempNode === stackHolder.top?.data.rightChild ) {
+                        tempNode = stackHolder.top!.data
+                        print(tempNode.data)
+                        stackHolder.pop()
+                    }
+                }
+            }
+        }
+    }
+    
+    func lowestCommonAncestor(root: Node<T>?, node1: Node<T>, node2: Node<T>) -> Node<T>? {
+        guard let rootNode = root else { return nil }
+        
+        if ((rootNode === node1) || (rootNode === node2)) {
+            return rootNode
+        }
+        
+        let leftTree = lowestCommonAncestor(root: rootNode.leftChild, node1: node1, node2: node2)
+        if (leftTree != nil && leftTree !== node1 && leftTree !== node2) {
+            return leftTree
+        } else {
+            let righttTree = lowestCommonAncestor(root: rootNode.rightChild, node1: node1, node2: node2)
+            if(leftTree != nil && righttTree != nil) {
+                return rootNode
+            }
+            return leftTree != nil ? leftTree : righttTree
+        }
+    }
+    
+    func lowestCommonAnscestorBST(root: Node<T>?, node1: Node<T>, node2: Node<T>) -> Node<T>? {
+        guard let rootNode = root else { print("Tree is empty."); return nil }
+        if(min(node1.data,node2.data) > rootNode.data) {
+            return lowestCommonAnscestorBST(root: rootNode.rightChild, node1: node1, node2: node2)
+        } else if (max(node1.data,node2.data) < rootNode.data) {
+             return lowestCommonAnscestorBST(root: rootNode.leftChild, node1: node1, node2: node2)
+        } else {
+            return root
+        }
+    }
+    
+    func spiralTraversal() -> Array<T>? {
+        guard let rootNode = root else { print("Tree is empty."); return nil }
+        let stackOne = Stack<Node<T>>()
+        let stackTwo = Stack<Node<T>>()
+        var returnArray = Array<T>()
+        stackOne.push(value: rootNode)
+        
+        while(stackTwo.isEmpty && stackOne.isEmpty) {
+            while !stackOne.isEmpty {
+                if let topNode = stackOne.top {
+                    if topNode.data.leftChild != nil {
+                        stackTwo.push(value: topNode.data.leftChild!)
+                    }
+                    if topNode.data.rightChild != nil {
+                        stackTwo.push(value: topNode.data.rightChild!)
+                    }
+                    returnArray.append(topNode.data.data)
+                }
+            }
+            
+            while !stackTwo.isEmpty {
+                if let secondTopNode = stackTwo.top {
+                    if secondTopNode.data.rightChild != nil {
+                        stackOne.push(value: secondTopNode.data.rightChild!)
+                    }
+                    if secondTopNode.data.leftChild != nil {
+                        stackOne.push(value: secondTopNode.data.leftChild!)
+                    }
+                    returnArray.append(secondTopNode.data.data)
+                }
+            }
+            
+        }
+        return returnArray
+    }
+    
+    func  reverseLevelOderTraversal() -> Array<T>? {
+        guard var traversedArray = traverseBST(traversalType: BST.traversalOptions.levelOrder) else { print("Tree is empty"); return nil }
+        let stackHolder = Stack<T>()
+        for counter in 0 ..< traversedArray.count {
+            stackHolder.push(value: traversedArray[counter])
+        }
+        guard traversedArray.count == stackHolder.length else { print("Error: Stack transformation not succesful."); return nil }
+        for counter in 1 ... stackHolder.length {
+            guard let topData = stackHolder.top else { print("Error: Unexpectedly found stack empty."); return nil }
+            traversedArray[counter] = topData.data
+            stackHolder.pop()
+        }
+        return traversedArray
+    }
+    
+    func insertNodeIteravtive(data: T, root: Node<T>?) -> Node<T> {
+        let newNode = Node(data: data)
+        guard let rootNode = root else { return newNode }
+        var current: Node<T>? = rootNode
+        var parent: Node<T>?
+        while (current != nil) {
+            if (data <= current!.data) {
+                parent = current
+                current = current!.leftChild
+            } else {
+                parent = current
+                current = current!.rightChild
+            }
+        }
+        if (data <= parent!.data) {
+            parent!.leftChild = newNode
+        }else {
+            parent!.rightChild = newNode
+        }
+        return rootNode
+    }
+    
+    func treeCompare(firstTreeRoot: Node<T>?, secondTreeRoot: Node<T>?) -> Bool {
+        if (firstTreeRoot == nil && secondTreeRoot == nil) {
+            return true
+        }
+        if (firstTreeRoot == nil || secondTreeRoot == nil) {
+            return false
+        }
+        return ((firstTreeRoot!.data == secondTreeRoot!.data) && treeCompare(firstTreeRoot: firstTreeRoot!.leftChild, secondTreeRoot: secondTreeRoot!.leftChild) && treeCompare(firstTreeRoot: firstTreeRoot!.rightChild, secondTreeRoot: secondTreeRoot!.rightChild))
+        
+    }
+    
+    func iterativePostOder(root: Node<T>?) -> Stack<Node<T>>? {
+        guard let rootNode = root else { print("Tree is empty."); return nil }
+        let stackOne = Stack<Node<T>>()
+        let stackTwo = Stack<Node<T>>()
+        stackOne.push(value: rootNode)
+        while (!stackOne.stackIsEmpty() && !stackTwo.isEmpty) {
+            let current = stackOne.top!.data
+            stackOne.pop()
+            if (current.leftChild != nil) {
+                stackOne.push(value: current.leftChild!)
+            }
+            if (current.rightChild != nil) {
+                stackOne.push(value: current.rightChild!)
+            }
+            stackTwo.push(value: current)
+        }
+       return stackTwo
+    }
+    
+    func iterativeInOder(root: Node<T>?) -> Array<T>? {
+        guard let rootNode = root else { print("Tree is empty."); return nil }
+        var returnArray = Array<T>()
+        let stack = Stack<Node<T>>()
+        var node: Node<T>? = rootNode
+        while (true) {
+            if (node != nil) {
+                stack.push(value: node!)
+                node = node!.leftChild
+            } else {
+                if stack.isEmpty {
+                    break
+                } else {
+                    node = stack.top!.data
+                    stack.pop()
+                    returnArray.append(node!.data)
+                    node = node!.rightChild
+                }
+            }
+        }
+        return returnArray
+    }
+    
+    func iterativePreOrder(root: Node<T>?) -> Array<T>? {
+        guard let rootNode = root else { print("Tree is empty."); return nil }
+        var returnArray = Array<T>()
+        let stack = Stack<Node<T>>()
+        stack.push(value: rootNode)
+        while (!stack.isEmpty) {
+            let current = stack.top!.data
+            stack.pop()
+            returnArray.append(current.data)
+            if (current.rightChild != nil) {
+                stack.push(value: current.rightChild!)
+            }
+            if (current.leftChild != nil) {
+                stack.push(value: current.leftChild!)
+            }
+        }
+        return returnArray
+    }
+    
+    func rootToLeafSum(data: T, root: Node<T>?, pathArray: inout Array<T>) -> Bool {
+        guard let rootNode = root else { return false }
+        if (rootNode.leftChild == nil && rootNode.rightChild == nil) {
+            if (data == rootNode.data) {
+                pathArray.append(rootNode.data)
+                return true
+            } else {
+                return false
+            }
+        }
+        let val = (data as! Int) - (rootNode.data as! Int)
+        
+        if(rootToLeafSum(data: val as! T, root: rootNode.leftChild, pathArray: &pathArray)) {
+            pathArray.append(rootNode.data)
+            return true
+        }
+        if(rootToLeafSum(data: val as! T, root: rootNode.rightChild, pathArray: &pathArray)) {
+            pathArray.append(rootNode.data)
+            return true
+        }
+        return false
+    }
+    
+    func sizeBST(root: Node<T>?) -> Int {
+        guard let rootNode = root else { return 0 }
+        let leftSize = sizeBST(root: rootNode.leftChild)
+        let rightSize = sizeBST(root: rootNode.rightChild)
+        return leftSize+rightSize+1
+        
+    }
+    
     private func arrayToBalancedBST(valueArray: Array<T>, start: Int, end: Int) -> Node<T>? {
         if start > end {
             return nil
@@ -86,7 +409,7 @@ class BST<T: Comparable> {
     func transformTreeBalanced(treeToTransform: BST<T>) -> BST<T> {
         guard let rootNode = treeToTransform.root else { print("Tree to transform is empty"); return treeToTransform }
         var sortedArray = Array<T>()
-        preOrderTraversal(root: rootNode, traversedArray: &sortedArray) { (data, collectionArray) in
+        inOrderTraversal(root: rootNode, traversedArray: &sortedArray) { (data, collectionArray) in
             collectionArray.append(data)
         }
         let balancedTree = BST<T>()
@@ -236,11 +559,11 @@ class BST<T: Comparable> {
     private func deleteNode(data: T, root: Node<T>?, nodeFound: inout Bool) -> Node<T>? {
         guard let rootNode = root else { return nil }
         if (data < rootNode.data) {
-            guard let _ = rootNode.leftChild else { nodeFound = true; return nil }
+            guard let _ = rootNode.leftChild else { nodeFound = false; return nil }
             rootNode.leftChild = deleteNode(data: data, root: rootNode.leftChild, nodeFound: &nodeFound)
             return rootNode
         } else if (data > rootNode.data) {
-            guard let _ = rootNode.rightChild else { nodeFound = true; return nil }
+            guard let _ = rootNode.rightChild else { nodeFound = false; return nil }
             rootNode.rightChild = deleteNode(data: data, root: rootNode.rightChild, nodeFound: &nodeFound)
             return rootNode
         } else {
@@ -283,14 +606,7 @@ class BST<T: Comparable> {
         return (isBST(root: rootNode.leftChild, upperBound: rootNode.data, lowerBound: lowerBound) && isBST(root: rootNode.rightChild, upperBound: upperBound, lowerBound: rootNode.data))
     }
     
-    private func getHeight(root: Node<T>?) -> Int {
-        guard let rootNode = root else { return 0 }
-        if rootNode.leftChild == nil && rootNode.rightChild == nil {
-            return 0
-        } else {
-            return max(getHeight(root: rootNode.leftChild),getHeight(root: rootNode.rightChild)) + 1
-        }
-    }
+    
     
     private func minDepth(root: Node<T>?) -> Int {
         guard let rootNode = root else { return 0 }
@@ -346,6 +662,15 @@ class BST<T: Comparable> {
         } else {
             print("Node not found.")
             return 0
+        }
+    }
+    
+    private func getHeight(root: Node<T>?) -> Int {
+        guard let rootNode = root else { return 0 }
+        if rootNode.leftChild == nil && rootNode.rightChild == nil {
+            return 0
+        } else {
+            return max(getHeight(root: rootNode.leftChild),getHeight(root: rootNode.rightChild)) + 1
         }
     }
     
@@ -538,6 +863,6 @@ class TestObserver: NSObject, XCTestObservation {
 
 let testObserver = TestObserver()
 XCTestObservationCenter.shared.addTestObserver(testObserver)
-BSTTests.defaultTestSuite.run()
+//BSTTests.defaultTestSuite.run()
 
 

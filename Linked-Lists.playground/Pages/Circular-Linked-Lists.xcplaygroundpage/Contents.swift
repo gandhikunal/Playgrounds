@@ -114,7 +114,7 @@ class CircularLinkedList<T: Equatable> {
     
     func addNode(value: T, position:Int?=nil, addAtHead:Bool=true) -> Bool {
         let newNode = Node(data: value)
-        guard !isEmpty else {let newNode = Node(data: value, next: head)
+        guard !isEmpty else { let newNode = Node(data: value, next: head)
             head = newNode
             newNode.next = head
             length = length+1
