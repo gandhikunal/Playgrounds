@@ -26,6 +26,7 @@ class Queue<T: Equatable> {
         length += 1
         guard !isEmpty else { front = newNode; rear = newNode; return true }
         guard let rearPointer = rear else { return false }
+//        newNode.next = rearPointer
         rearPointer.next = newNode
         rear = newNode
         return true

@@ -156,7 +156,7 @@ class LinkedList<T: Equatable> {
                     if start.next == nil {
                         newNode.previous = start
                         start.next = newNode
-                        return false
+                        return true
                     }
                     return false
                 }

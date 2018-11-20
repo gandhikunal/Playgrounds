@@ -157,7 +157,7 @@ class LinkedList<T: Equatable> {
         }
         
 //      ensure that the position at which insertion is requeted is not outside bounds
-        guard position < length else {
+        guard position <= length else {
             print("Error: Cannot add at the mentioned position linked list shorter than requested.")
             return false
         }

@@ -15,8 +15,6 @@ class Stack<T: Equatable> {
     
     var top: Node<T>?
     
-    let kunal = String()
-    
     var isEmpty: Bool { return top == nil }
     
     var length = 0

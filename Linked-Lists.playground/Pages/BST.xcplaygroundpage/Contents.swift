@@ -156,7 +156,7 @@ class BST<T: Comparable> {
         let lrgLeft = largestBST(root: rootNode.leftChild)
         let lrgRight = largestBST(root: rootNode.rightChild)
         
-        if (lrgLeft.0 && lrgRight.0 && (rootNode.data as! Int)<=lrgLeft.2  && (rootNode.data as! Int)>lrgRight.3) {
+        if (lrgLeft.0 && lrgRight.0 && (rootNode.data as! Int)>lrgLeft.3  && (rootNode.data as! Int)<lrgRight.2) {
             return (true, (lrgLeft.1+lrgRight.1)+1 , lrgLeft.2, lrgRight.3)
         } else {
             return (false, max(lrgLeft.1, lrgRight.1), 0, 0)
@@ -211,11 +211,11 @@ class BST<T: Comparable> {
         guard let rootNode = root else { print("Tree is empty."); return nil }
         if(min(node1.data,node2.data) > rootNode.data) {
             return lowestCommonAnscestorBST(root: rootNode.rightChild, node1: node1, node2: node2)
-        } else if (max(node1.data,node2.data) < rootNode.data) {
-             return lowestCommonAnscestorBST(root: rootNode.leftChild, node1: node1, node2: node2)
-        } else {
-            return root
         }
+        if (max(node1.data,node2.data) < rootNode.data) {
+             return lowestCommonAnscestorBST(root: rootNode.leftChild, node1: node1, node2: node2)
+        }
+        return root
     }
     
     func spiralTraversal() -> Array<T>? {
@@ -234,6 +234,7 @@ class BST<T: Comparable> {
                     if topNode.data.rightChild != nil {
                         stackTwo.push(value: topNode.data.rightChild!)
                     }
+                    stackOne.pop()
                     returnArray.append(topNode.data.data)
                 }
             }
@@ -246,6 +247,7 @@ class BST<T: Comparable> {
                     if secondTopNode.data.leftChild != nil {
                         stackOne.push(value: secondTopNode.data.leftChild!)
                     }
+                    stackTwo.pop()
                     returnArray.append(secondTopNode.data.data)
                 }
             }
@@ -253,43 +255,23 @@ class BST<T: Comparable> {
         }
         return returnArray
     }
+//    wrong implementation
+//    func  reverseLevelOderTraversal() -> Array<T>? {
+//        guard var traversedArray = traverseBST(traversalType: BST.traversalOptions.levelOrder) else { print("Tree is empty"); return nil }
+//        let stackHolder = Stack<T>()
+//        for counter in 0 ..< traversedArray.count {
+//            stackHolder.push(value: traversedArray[counter])
+//        }
+//        guard traversedArray.count == stackHolder.length else { print("Error: Stack transformation not succesful."); return nil }
+//        for counter in 1 ... stackHolder.length {
+//            guard let topData = stackHolder.top else { print("Error: Unexpectedly found stack empty."); return nil }
+//            traversedArray[counter] = topData.data
+//            stackHolder.pop()
+//        }
+//        return traversedArray
+//    }
+//    
     
-    func  reverseLevelOderTraversal() -> Array<T>? {
-        guard var traversedArray = traverseBST(traversalType: BST.traversalOptions.levelOrder) else { print("Tree is empty"); return nil }
-        let stackHolder = Stack<T>()
-        for counter in 0 ..< traversedArray.count {
-            stackHolder.push(value: traversedArray[counter])
-        }
-        guard traversedArray.count == stackHolder.length else { print("Error: Stack transformation not succesful."); return nil }
-        for counter in 1 ... stackHolder.length {
-            guard let topData = stackHolder.top else { print("Error: Unexpectedly found stack empty."); return nil }
-            traversedArray[counter] = topData.data
-            stackHolder.pop()
-        }
-        return traversedArray
-    }
-    
-    func insertNodeIteravtive(data: T, root: Node<T>?) -> Node<T> {
-        let newNode = Node(data: data)
-        guard let rootNode = root else { return newNode }
-        var current: Node<T>? = rootNode
-        var parent: Node<T>?
-        while (current != nil) {
-            if (data <= current!.data) {
-                parent = current
-                current = current!.leftChild
-            } else {
-                parent = current
-                current = current!.rightChild
-            }
-        }
-        if (data <= parent!.data) {
-            parent!.leftChild = newNode
-        }else {
-            parent!.rightChild = newNode
-        }
-        return rootNode
-    }
     
     func treeCompare(firstTreeRoot: Node<T>?, secondTreeRoot: Node<T>?) -> Bool {
         if (firstTreeRoot == nil && secondTreeRoot == nil) {
@@ -307,7 +289,7 @@ class BST<T: Comparable> {
         let stackOne = Stack<Node<T>>()
         let stackTwo = Stack<Node<T>>()
         stackOne.push(value: rootNode)
-        while (!stackOne.stackIsEmpty() && !stackTwo.isEmpty) {
+        while (!stackOne.stackIsEmpty()) {
             let current = stackOne.top!.data
             stackOne.pop()
             if (current.leftChild != nil) {
@@ -559,11 +541,11 @@ class BST<T: Comparable> {
     private func deleteNode(data: T, root: Node<T>?, nodeFound: inout Bool) -> Node<T>? {
         guard let rootNode = root else { return nil }
         if (data < rootNode.data) {
-            guard let _ = rootNode.leftChild else { nodeFound = false; return nil }
+            guard let _ = rootNode.leftChild else { nodeFound = false; return rootNode }
             rootNode.leftChild = deleteNode(data: data, root: rootNode.leftChild, nodeFound: &nodeFound)
             return rootNode
         } else if (data > rootNode.data) {
-            guard let _ = rootNode.rightChild else { nodeFound = false; return nil }
+            guard let _ = rootNode.rightChild else { nodeFound = false; return rootNode }
             rootNode.rightChild = deleteNode(data: data, root: rootNode.rightChild, nodeFound: &nodeFound)
             return rootNode
         } else {
@@ -599,7 +581,7 @@ class BST<T: Comparable> {
     func isBST(root: Node<T>?, upperBound: T, lowerBound: T) -> Bool {
         guard let rootNode = root else { return true }
         
-        if (rootNode.data > upperBound || rootNode.data <= lowerBound) {
+        if (rootNode.data > upperBound || rootNode.data < lowerBound) {
             return false
         }
         
@@ -611,17 +593,17 @@ class BST<T: Comparable> {
     private func minDepth(root: Node<T>?) -> Int {
         guard let rootNode = root else { return 0 }
         var returnVal = 0
+        if (rootNode.leftChild == nil && rootNode.rightChild == nil) {
+            return 0
+        }
         if(rootNode.leftChild == nil && rootNode.rightChild != nil) {
-            returnVal = minDepth(root: rootNode.rightChild) + 1
+             return minDepth(root: rootNode.rightChild) + 1
         }
-        else if (rootNode.leftChild != nil && rootNode.rightChild == nil) {
-            returnVal = minDepth(root: rootNode.leftChild) + 1
-        } else {
-            let minLt = minDepth(root: rootNode.leftChild)
-            let minRt = minDepth(root: rootNode.rightChild)
-            returnVal = min(minLt,minRt)+1
+        if (rootNode.leftChild != nil && rootNode.rightChild == nil) {
+            return minDepth(root: rootNode.leftChild) + 1
         }
-        return returnVal
+        
+        return min(minDepth(root: rootNode.leftChild), minDepth(root: rootNode.rightChild))+1
     }
 //    wrapper function for min depth
     func getMinDepth() -> Int {
@@ -631,6 +613,9 @@ class BST<T: Comparable> {
     
     private func maxDepth(root: Node<T>?) -> Int {
         guard let rootNode = root else { return 0 }
+        if (rootNode.leftChild == nil && rootNode.rightChild == nil) {
+            return 0
+        }
         return max(maxDepth(root: rootNode.leftChild),maxDepth(root: rootNode.rightChild)) + 1
     }
     //    wrapper function for max depth
@@ -719,6 +704,28 @@ class BST<T: Comparable> {
             print("Value not found.")
             return false
         }
+    }
+    
+    func insertNodeIteravtive(data: T, root: Node<T>?) -> Node<T> {
+        let newNode = Node(data: data)
+        guard let rootNode = root else { return newNode }
+        var current: Node<T>? = rootNode
+        var parent: Node<T>?
+        while (current != nil) {
+            if (data <= current!.data) {
+                parent = current
+                current = current!.leftChild
+            } else {
+                parent = current
+                current = current!.rightChild
+            }
+        }
+        if (data <= parent!.data) {
+            parent!.leftChild = newNode
+        }else {
+            parent!.rightChild = newNode
+        }
+        return rootNode
     }
     
     private func addChild(data: T, root: Node<T>?) -> Node<T>? {
